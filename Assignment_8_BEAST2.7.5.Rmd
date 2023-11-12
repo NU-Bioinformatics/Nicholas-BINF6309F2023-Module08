@@ -1,0 +1,87 @@
+---
+title: "Module_8_BEAST2.7.5"
+author: "Nick Chevalier"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## BEAST2.7.5
+https://taming-the-beast.org/tutorials/Introduction-to-BEAST2/
+
+## Purpose
+
+Here we are useing BEAST2 to co-estimate the gene phylogeny and rate of evolution based on the alignment of sequences sampled from twelve primate species. 
+
+There are 6 programs used to create the phylogenetic tree:
+1) BEAST2 - Bayesian Evolutionary Analysis Sampling Trees 2
+-free software package for Bayesian evolutionary analysis of molecular sequences using MCMC and strictly oriented toward inference using rooted, time-measured phylogenetic trees. 
+2) BEAUti2 - Bayesian Evolutionary Analysis Utility
+-graphical user interface tool for generating BEAST2 XML configuration files.
+3) TreeAnnotator
+- Used to summarize the posterior sample of trees to produce a maximum clade credibility tree. 
+- It can also be used to summarise and visualise the posterior estimates of other tree parameters (e.g. node height).
+4) Tracer
+- Used to summarize the posterior estimates of the various parameters sampled by the Markov Chain.
+- This program can be used for visual inspection and to assess convergence. 
+- Quickly views median estimates and 95% highest posterior density intervals of the parameters, and calculates the effective sample sizes (ESS) of parameters. 
+- Can also be used to investigate potential parameter correlations.
+- Separate Install: https://github.com/beast-dev/tracer/releases/tag/v1.7.2
+5) FigTree
+- program for viewing trees and producing publication-quality figures. 
+- Separate Install: https://github.com/rambaut/figtree/releases
+6) DensiTree
+- Tool for qualitative analysis of sets of trees.
+- Quickly get an impression of properties of the tree set such as well-supported clades, distribution of tree heights and areas of topological uncertainty.
+
+In this case, we used these programs to specifically to measure the phylogeny or evolution of 12 primates evolutionay relatedness. However, we can also use it to evaluate things such as clonal evolution in of cells in a patient with metastatic cancer. 
+
+
+## Input Data
+The input data is DNA alignment of sequences samples from twelve primate species.
+Species include: Lemur catta, tarsius syrichta, homo sapiens, pan, gorilla, pongo, hylobates, macaca fuscata, m. mulatta, m. fascicularis, m. sylvanus, and saimiri sciureus.
+
+For substitution, we used the Gamma site model and estimated the substitution rate. This is due to the Gamma distribution being discretised to a small number of bins (4-6 usually). 
+
+We left the Clock Model as the default because this data is very "clock-like" and does not need rate variation among branches to be included in the model.
+We also left Tree models as tree because we change in the Priors. 
+
+We used the Prior Calibrated Yule Model for the tree. This is because it is a simple model of speciation generally appropriate for considering sequences from different species. WE then set the Alpha (shape) to 0.001 and Beta (scale) to 1000. 
+
+We set the MCMC chain length to 1,000,000 for the first run and 10,000,000 for the second run. For the first run, it was the initial analysis and only takes a few minutes. We upped it in the second run to allow for a more accurate tree run. 
+We logged every 200 samples. We normally aim to store no more than 10,000 samples so we did: chain length/10,000 = 200
+
+In the Tracer Review we looked at the summary statistics on the results of analysis. 
+We first looked at posterior which is the natural log of the product of the tree likelihood and the prior density. It showed summary values like mean, standard error, median, etc. 
+We then looked at the TreeHeight statistic which gives the marginal posterior distribution of the age of the root of the entire tree (that is, the tMRCA). We specifically looked at the Marginal Density of the TreeHeight data to compare estimates of the different mutation rates of the alignment data.
+We also looked at Auto-Correlation Time (ACT) and the Effective Sample Size (ESS) with the sample that ran on BEAUti with 10,000,000 and trace log 1,000. 
+ACT is the average number of states in the MCMC chain that two samples have to be separated by for them to be uncorrelated (ex: for them to be independent samples from the posterior).
+ESS is a quality-measure of the resulting sample sequence. An ESS of 200 is considered high enough to make the analysis useful. ESS is the number of independent samples that the trace is equivalent to. This is calculated as the chain length (excluding the burn-in) divided by the ACT.
+We looked a the TreeHeight as compared to clockRate specifically in the Joint Marginal Tab to see if the two parameters were highly correlated. and possibly leading to poor convergences of the MCMC chain. We also did this for the 4 points to see if they were correlated. 
+
+Finally, we created a Tree using TreeAnnotator. We set the Burnin percentage to 10% to discard the first 10% of trees in the log file, left Posterior probability limit at the default of 0, Target tree tye as Maximum clade credibility tree, and Node Heights as Mean heights. After generation, we adjusted the trees to have labels that were readable along with adding the nodes, scale bar, axis bar, and node labels.
+
+
+## Summary
+Please see primates-mtDNA_long.log in Tracer (screenshot also provided) for mutation rate parameters and confidence in our analysis. In this graph we see that some of the data is correlated while others are anti-correlated. We see that MutationRate.3rdpos is correlated with all samples where the clustering is depicted in red and sloping down and to the right. This means that the samples set has poor convergence of the MCMC chain. On the other hand, the mutationRate.1stpos, mutationRate.2ndpos, and mutationRate.noncoding are all anti-correlated. 
+
+Please see Primates.MCC.tree for the resulting tree visual. Here we see that homo sapiens (himans) are most similar to Pan (chimpanzees), where we are closest to Pan and with the node of 1. We also see that the Lemur catta (ring tailed lenmur) and Tarsius syrichta (Philippine tarsier) are closely related but also branched off earlier in evolution compared to the other primates we analyzed. 
+
+
+
+## References 
+1. Joëlle Barido-Sottani, Veronika Bošková, Louis du Plessis, Denise Kühnert, Carsten Magnus, Venelin Mitov, Nicola F. Müller, Jūlija Pečerska, David A. Rasmussen, Chi Zhang, Alexei J. Drummond, Tracy A. Heath, Oliver G. Pybus, Timothy G. Vaughan, Tanja Stadler (2018). Taming the BEAST – A community teaching material resource for BEAST 2. Systematic Biology, 67(1), 170–-174. doi: 10.1093/sysbio/syx060
+2. Bouckaert, R., Heled, J., Kühnert, D., Vaughan, T., Wu, C.-H., Xie, D., Suchard, M. A., Rambaut, A., & Drummond, A. J. (2014). BEAST 2: a software platform for Bayesian evolutionary analysis. PLoS Computational Biology, 10(4), e1003537. https://doi.org/10.1371/journal.pcbi.1003537
+3. Bouckaert, R., Vaughan, T. G., Barido-Sottani, J., Duchêne, S., Fourment, M., Gavryushkina, A., Heled, J., Jones, G., Kühnert, D., Maio, N. D., Matschiner, M., Mendes, F. K., Müller, N. F., Ogilvie, H. A., Plessis, L. du, Popinga, A., Rambaut, A., Rasmussen, D., Siveroni, I., … Drummond, A. J. (2019). BEAST 2.5: An advanced software platform for Bayesian evolutionary analysis. PLOS Computational Biology, 15(4).
+4. Drummond, A. J., & Bouckaert, R. R. (2014). Bayesian evolutionary analysis with BEAST 2. Cambridge University Press.
+
+# Useful Links
+Bayesian Evolutionary Analysis with BEAST 2 (Drummond & Bouckaert, 2014)
+BEAST 2 website and documentation: http://www.beast2.org/
+BEAST 1 website and documentation: http://beast.bio.ed.ac.uk
+Join the BEAST user discussion: http://groups.google.com/group/beast-users
+Tracer v1.7.0 https://beast.community/tracer - tested with v1.7.2 in March 2022
+FigTree v1.4.3 https://beast.community/figtree - tested with v1.4.4 in March 2022
